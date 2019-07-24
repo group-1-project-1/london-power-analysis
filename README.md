@@ -2,3 +2,4 @@
 
 ## Group Members
 * Pragya Shakya
+* Alexis Summey
