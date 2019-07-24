@@ -9,3 +9,4 @@
 
 * Alexis Summey
 * BADOU ARTHUR KOSSONOU
+* Sancta Marie P.Isimbi
