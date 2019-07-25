@@ -15,8 +15,6 @@ wget "$energy_url" -O "$energy_zippath"
 
 echo " - Expanding zip file and renaming"
 unzip "$energy_zippath" && \
-    mv "$energy_filepath" "$energy_outpath" && \
-    ln -sf "$energy_outpath" "../$energy_outpath"
-
+    mv "$energy_filepath" "$energy_outpath" 
 echo " + Done."
 
