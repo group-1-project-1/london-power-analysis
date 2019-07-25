@@ -18,7 +18,9 @@ dtypes={'KwH/hh': 'float'}
 pathfmt=os.path.join('.', '{dir}','{year}-{month:02}-power-survey-london.csv')
 
 # output directory
+input_dir='raw'
 output_dir='data'
+
 
 # years and months to consider
 years=[2012, 2013]
@@ -38,8 +40,8 @@ except FileExistsError:
 for year in years:
     for month in months:
         # construct pathname's
-        outpath = pathfmt.format(year=year, month=month, dir='data')
-        inpath = pathfmt.format(year=year, month=month, dir='raw')
+        outpath = pathfmt.format(year=year, month=month, dir=output_dir)
+        inpath = pathfmt.format(year=year, month=month, dir=input_dir)
 
         # test to see if the data file exists, if so ..
         if os.path.exists(inpath):
