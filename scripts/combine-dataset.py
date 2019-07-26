@@ -15,7 +15,12 @@ dtypes={'KwH/hh': 'float'}
 
 
 # format-string for datafile path
-pathfmt="./{dir}/{year}-{month:02}-power-survey-london.csv"
+pathfmt=os.path.join('.', '{dir}','{year}-{month:02}-power-survey-london.csv')
+
+# output directory
+input_dir='raw'
+output_dir='data'
+
 
 # years and months to consider
 years=[2012, 2013]
@@ -26,7 +31,7 @@ months=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 # attempt to create output directory
 print(' - Setup output directory')
 try:
-    os.mkdir('combined')
+    os.mkdir(output_dir)
 except FileExistsError:
     pass
 
@@ -35,8 +40,8 @@ except FileExistsError:
 for year in years:
     for month in months:
         # construct pathname's
-        outpath = pathfmt.format(year=year, month=month, dir='combined')
-        inpath = pathfmt.format(year=year, month=month, dir='raw')
+        outpath = pathfmt.format(year=year, month=month, dir=output_dir)
+        inpath = pathfmt.format(year=year, month=month, dir=input_dir)
 
         # test to see if the data file exists, if so ..
         if os.path.exists(inpath):
@@ -87,7 +92,7 @@ for year in years:
             combined['mean'] = means
             combined['count'] = count_total
             combined['sigma'] = sum_total
-
+            
             # output combined table
             print(f'   - writing combined data to file: \"{outpath}\"')
             combined.to_csv(outpath)

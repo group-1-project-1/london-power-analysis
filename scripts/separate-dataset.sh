@@ -17,7 +17,7 @@ for year in $years; do
         outfile="./raw/$year-$month-$datafile"
         if ! [ -f "$outfile" ]; then
             echo " - Extracting entries with Std pricing for $month of $year..."
-            grep "Std,$year-$month-" "$datafile" > "$outfile"
+            grep "Std,$year-$month-" "./raw/$datafile" > "$outfile"
         fi
     done
 done
