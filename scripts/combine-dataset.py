@@ -13,7 +13,6 @@ headers=['id', 'pricing', 'datetime',
 # column types for datafile
 dtypes={'KwH/hh': 'float'}
 
-
 # format-string for datafile path
 pathfmt=os.path.join('.', '{dir}','{year}-{month:02}-power-survey-london.csv{suffix}')
 
