@@ -15,11 +15,17 @@ mkdir -p 'raw'
 for year in $years; do
     for month in $months; do
         outfile="./raw/$year-$month-$datafile"
-        if ! [ -f "$outfile" ]; then
+        if ! [ -f "$outfile" ] && ! [ -f "$outfile.bz2" ]; then
             echo " - Extracting entries with Std pricing for $month of $year..."
             grep "Std,$year-$month-" "./raw/$datafile" > "$outfile"
+        fi
+
+        if ! [ -f "$outfile.bz2" ]; then
+            echo " - Compressing extracted entries for $month of $year..."
+            bzip2 "$outfile"
         fi
     done
 done
 
 echo " + Done."
+                                    
