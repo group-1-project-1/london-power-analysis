@@ -192,6 +192,6 @@ dmypy.json
 
 ###################### personal additions
 
-power-survey-london.csv
-raw/
-
+# ignore uncompressed (bzip2) raw data
+raw/*.csv
+raw/*.zip
