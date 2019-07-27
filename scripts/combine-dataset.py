@@ -15,7 +15,7 @@ dtypes={'KwH/hh': 'float'}
 
 
 # format-string for datafile path
-pathfmt=os.path.join('.', '{dir}','{year}-{month:02}-power-survey-london.csv')
+pathfmt=os.path.join('.', '{dir}','{year}-{month:02}-power-survey-london.csv{suffix}')
 
 # output directory
 input_dir='raw'
@@ -40,8 +40,11 @@ except FileExistsError:
 for year in years:
     for month in months:
         # construct pathname's
-        outpath = pathfmt.format(year=year, month=month, dir=output_dir)
-        inpath = pathfmt.format(year=year, month=month, dir=input_dir)
+        outpath = pathfmt.format(
+            year=year, month=month, dir=output_dir, suffix='')
+        
+        inpath = pathfmt.format(
+            year=year, month=month, dir=input_dir, suffix='.bz2')
 
         # test to see if the data file exists, if so ..
         if os.path.exists(inpath):
