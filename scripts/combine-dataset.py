@@ -49,14 +49,14 @@ for year in years:
         # test to see if the data file exists, if so ..
         if os.path.exists(inpath):
             # .. begin data manipulation
-            print(f' - Processing file: \"{path}\"')
+            print(f' - Processing file: \"{inpath}\"')
             data = pd.read_csv(inpath, header=None, names=headers)
             
             print(f'   - extracting non-null records')
             tmp = data.copy()
             tmp = tmp.loc[ tmp['KwH/hh'] != 'Null' ]
 
-            print(f'   - setting column types and abbrev. contents')
+            print(f'   - setting column types, abbrev. contents, fixing double entries')
             data = tmp.astype(dtypes).copy()
             del tmp  # free up some resources
 
@@ -70,7 +70,7 @@ for year in years:
             data = data.groupby(['id', 'datetime', 'acorn', 'acorn-grouped']).mean()
             data = data.reset_index()
             
-            print(f'   - computing sums/counts grouped by acorn type')
+            print(f'   - computing sums/counts/stds grouped by acorn type')
             # group data by date and acorn type
             grouped = data.groupby(['datetime', 'acorn'])
             sums   = grouped.sum()   # find contribution from each group
@@ -110,9 +110,9 @@ for year in years:
                 columns=dict([(name, name+'_std') for name in stds_atyp.columns]))
 
             # merge everything into one dataframe
-            combined = pd.merge(counts_atyp, sums_atyp, 
+            combined = pd.merge(sums_atyp,  stds_atyp,
                                 left_index=True, right_index=True)
-            combined = pd.merge(combined, stds_atyp,
+            combined = pd.merge(combined, counts_atyp,
                                 left_index=True, right_index=True)
             
             
@@ -124,7 +124,7 @@ for year in years:
             combined['count'] = count_total
             combined['sigma'] = sum_total
             combined['mean'] = means
-            
+            combined['std'] = data.groupby('datetime').std()
             # output combined table
             print(f'   - writing combined data to file: \"{outpath}\"')
             combined.to_csv(outpath)
