@@ -59,42 +59,71 @@ for year in years:
             print(f'   - setting column types and abbrev. contents')
             data = tmp.astype(dtypes).copy()
             del tmp  # free up some resources
-            
+
+            # fixup datetime 
             data['datetime'] = pd.to_datetime( data['datetime'] )
+            
+            # remove 'ACORN-' from entries in 'acorn' column
             data['acorn'] = data['acorn'].apply(lambda x : x[-1])
 
+            # take care of possible double counting
+            data = data.groupby(['id', 'datetime', 'acorn', 'acorn-grouped']).mean()
+            data = data.reset_index()
+            
             print(f'   - computing sums/counts grouped by acorn type')
             # group data by date and acorn type
             grouped = data.groupby(['datetime', 'acorn'])
             sums   = grouped.sum()   # find contribution from each group
+            stds   = grouped.std()   # find standard deviation for each group
             counts = grouped.count() # find size of each group
             
-            # merge the two signals
-            merged = pd.merge(sums, counts['id'],
-                              left_index=True, right_index=True).reset_index()
-
+            # merge the three values
+            merged = pd.merge(counts['id'], sums,
+                              left_index=True, right_index=True)
+            merged = pd.merge(merged, stds,
+                              left_index=True, right_index=True)
+            merged = merged.reset_index()
+            
             print(f'   - generating columns for each acorn type')
             # generate pd.DataFrame()'s with columns corresponding to type
-            grouped = merged.groupby('datetime')
-            sums_typ = grouped.apply(lambda x : \
-                                     x.set_index('acorn').transpose().iloc[1])
-            counts_typ = grouped.apply(lambda x : \
-                                       x.set_index('acorn').transpose().iloc[2])
 
+            grouped = merged.groupby('datetime')
+            counts_atyp = grouped.apply( lambda x : \
+                                         x.set_index('acorn').transpose().iloc[1])
+            sums_atyp = grouped.apply( lambda x : \
+                                       x.set_index('acorn').transpose().iloc[2])
+            stds_atyp = grouped.apply(lambda x : \
+                                      x.set_index('acorn').transpose().iloc[3])
+            
             # combine the new tables into one big one
             print(f'   - generating combined table')
-            combined = pd.merge(sums_typ, counts_typ,
-                                right_index=True, left_index=True,
-                                suffixes=('_sigma', '_count'))
+            
+            # fixup columns names
+            counts_atyp = counts_atyp.rename(
+                index=str,
+                columns=dict([(name, name+'_count') for name in counts_atyp.columns]))
+            sums_atyp = sums_atyp.rename(
+                index=str,
+                columns=dict([(name, name+'_sigma') for name in sums_atyp.columns]))
+            stds_atyp = stds_atyp.rename(
+                index=str,
+                columns=dict([(name, name+'_std') for name in stds_atyp.columns]))
+
+            # merge everything into one dataframe
+            combined = pd.merge(counts_atyp, sums_atyp, 
+                                left_index=True, right_index=True)
+            combined = pd.merge(combined, stds_atyp,
+                                left_index=True, right_index=True)
             
             
-            count_total = counts_typ.sum(axis=1)
-            sum_total = sums_typ.sum(axis=1)
+            # add some summary information
+            count_total = counts_atyp.sum(axis=1)
+            sum_total = sums_atyp.sum(axis=1)
             means = sum_total / count_total
 
-            combined['mean'] = means
             combined['count'] = count_total
             combined['sigma'] = sum_total
+            combined['mean'] = means
             
             # output combined table
             print(f'   - writing combined data to file: \"{outpath}\"')
