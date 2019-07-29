@@ -8,6 +8,8 @@ import numpy as np
 
 # file holding historical weather data
 datapath = os.path.join('.', 'raw', 'openweather-london-2013.json')
+
+# output file
 outpath =  os.path.join('.', 'data', 'openweather-london-2013.csv')
 
 # date-time format used by weather data
