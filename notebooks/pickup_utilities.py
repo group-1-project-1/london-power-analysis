@@ -15,20 +15,21 @@ def extractGroupedAcorn(df):
 def eventPlotterAcorn(dfevent, dtitle, tsb, tse, breaktime=None):
     grps = extractGroupedAcorn( dfevent )
     plt.figure(figsize=(12,4))
-
+    break_idx = 0
     hnds = []
     for ii, acorn in enumerate(grps):
         weight = 1.0
         if breaktime is not None:
-            weight = 1.0/acorn[breaktime]
-        tmp, = plt.plot(dfevent["tstamp"], weight * acorn, label = f'Acorn {ii+1}')
+            break_idx = dfevent.loc[dfevent['tstamp']==breaktime].index[0]
+            weight = 1.0/acorn[break_idx]
+        tmp, = plt.plot(dfevent['tstamp'], weight * acorn, label = f'Acorn {ii+1}')
         hnds.append( tmp )
 
     plt.xticks(rotation='vertical')
     plt.title(dtitle)
     plt.xlabel("time stamp")
     if breaktime is not None:
-        plt.ylabel("Normalized Energy Consumption (kW-h/hh)")
+        plt.ylabel("Normalized Energy Consumption")
     else:
         plt.ylabel("Energy Consumption (kW-h/hh)")
 
