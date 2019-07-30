@@ -54,11 +54,10 @@ for filename in os.listdir(nb_dir):
             # concat. all lines of 'source'; generating full cell source-code 
             source = ''.join( cell.get('source', []) )
             
-            # search source for slack'd out snippets which ..
+            # search source for slack'd out snippet which ..
             #     .. should be in the notebook somewhere.
             if cell['cell_type'] == 'code' and \
-               source.find('from pickup_utilities import') >=0 and \
-               source.find('df = pd.read_csv("../data/complete.csv")') >= 0:
+               source.find('pd.read_csv("../data/complete.csv")') >= 0:
                 found_init = True
                 break # exit this loop
 

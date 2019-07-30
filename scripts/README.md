@@ -30,3 +30,5 @@ Loads the raw weather data stored in './raw/openweather-london-2013.json', conve
 
 ## 'extract-plots.py'
 
+Runs each notebook in the './notebooks' folder and extracts any plots generated with matplotlib; saving the figure to a unique file in the './images' directory.
+
