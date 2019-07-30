@@ -66,17 +66,17 @@ for filename in os.listdir(nb_dir):
         # check to see if we found a valid initalization cell.
         if not found_init: # if not, ...
             # tell the user we are skipping the notebook
-            print(' + No valid initialization cell found. ignoring.')
+            print(' + No valid init. cell found. ignoring.')
             
         else: # if so, ...
             # tell user are interested in notebook
-            print(' + Found valid init cell')
+            print(' + Found valid init. cell')
             
             # reset switch
             found_init = False 
 
             # delete found initalization cell
-            print(' + Removing initialization cell')
+            print(' + Removing init. cell')
             del nbcells[ii]
 
             # generate basepath for saving plots
