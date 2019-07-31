@@ -47,12 +47,10 @@ def eventPlotterAcorn(dfevent, dtitle, tsb, tse):
         tmp, = plt.plot(list(dfevent.index), acorn,
                         label = f'{acorn_names[ii]}')
         hnds.append( tmp )
-
     plt.xticks(rotation='vertical')
     plt.title(dtitle)
     plt.xlabel("Timestamp")
-    plt.ylabel("Energy Consumption Z-Score")
-    
+    plt.ylabel("Energy Consumption Z-Score")    
     plt.grid()
     plt.legend(handles=hnds, loc="best")
     pass
@@ -62,13 +60,12 @@ def eventPlotter(dfx, title, col='sigma', suffix="", label=None, color=None):
     if color:
         plt.plot(dfx['tstamp'],dfx[col], label=label, color=color)
     else:
-        plt.plot(dfx['tstamp'],dfx[col], label=label)
-    
+        plt.plot(dfx['tstamp'],dfx[col], label=label)    
     plt.xticks(rotation='vertical')
     plt.title(title)
     plt.xlabel("Timestamp")
     plt.ylabel(f"Energy Consumption {suffix}")
-    #plt.grid('on')
+    #plt.grid(True)
     pass
 	
 
@@ -90,6 +87,7 @@ def plotUsageProfile():
     plt.ylim([10, 1700])
     plt.legend(loc='lower left')
     plt.tight_layout()
+    pass
 
 
 def plotSamplePaths(dfs, title, means, stds, tsb=None, tse=None):
@@ -106,7 +104,7 @@ def plotSamplePaths(dfs, title, means, stds, tsb=None, tse=None):
         plt.axvspan(tsb, tse, color='red', alpha=0.2)
 
     plt.yticks([])
-    plt.grid('on')
+    plt.grid(True)
     plt.legend()
 
     # second subplot
@@ -130,7 +128,7 @@ def plotSamplePaths(dfs, title, means, stds, tsb=None, tse=None):
         plt.axvspan(tsb, tse, color='red', alpha=0.2)
     
     plt.ylim([-2.5,2.5])
-    plt.grid('on')
+    plt.grid(True)
     plt.legend(loc='upper left')
     
     # adjust subplot locations
@@ -183,7 +181,7 @@ plt.xlabel('Timestamp')
 plt.ylabel('Energy Usage (kW-h/hh)')
 plt.plot( xvals, stds['sigma'], label='$\sigma$', color='orange')
 plt.ylim([10, 350])
-plt.grid()
+plt.grid(True)
 
 plt.legend(loc='upper left')
 plt.xticks(rotation='vertical')
@@ -202,8 +200,7 @@ for idx in events.sort_values(by=['Date', 'Time']).index:
     year, month, day = \
         ((event['Date']).year,
          (event['Date']).month,
-         (event['Date']).day)
-    
+         (event['Date']).day)    
 
     # isolate event day
     dfevent = data.loc[
@@ -218,6 +215,7 @@ for idx in events.sort_values(by=['Date', 'Time']).index:
             ((event['Date']-ii*delta).year,
              (event['Date']-ii*delta).month,
              (event['Date']-ii*delta).day)
+        
         year1, month1, day1 = \
             ((event['Date']+ii*delta).year,
              (event['Date']+ii*delta).month,
@@ -227,6 +225,7 @@ for idx in events.sort_values(by=['Date', 'Time']).index:
             data['year']==year0].loc[
                 data['month']==month0].loc[
                     data['day']==day0].copy()
+        
         nfevent = data.loc[
             data['year']==year1].loc[
                 data['month']==month1].loc[
@@ -243,6 +242,7 @@ for idx in events.sort_values(by=['Date', 'Time']).index:
              f' at {event["Time"].hour}:{event["Time"].minute:02}'
              f' ({event["Audience"]}m)'
              f' (n~{int(dfevent["count"].mean())})')
+
     tsb = f'{event["Start-Time"].hour}:{event["Start-Time"].minute:02}'
     tse = f'{event["End-Time"].hour}:{event["End-Time"].minute:02}'
 
@@ -258,7 +258,7 @@ for idx in events.sort_values(by=['Date', 'Time']).index:
 
     # separate plot
     #eventPlotterAcorn(dfevent, title, tsb, tse)
-    #plt.grid('on')
+    #plt.grid(True)
     #plt.axvspan(tsb, tse, color='red', alpha=0.2)
     #plt.savefig(('./images/'
     #             f'{iid:03}-{cname}_{csport}_2.png'))

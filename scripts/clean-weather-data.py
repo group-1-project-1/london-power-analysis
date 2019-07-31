@@ -44,12 +44,10 @@ for entry in raw:
        temp_max > -100.0 and \
        temp_min > -100.0:
         # if it is, then add it to the list
+        date = pd.to_datetime(f'{tstamp.year}-{tstamp.month}-{tstamp.day}')
         weather.append({
-            'datetime': tstamp,
-            'year': tstamp.year,
-            'month': tstamp.month,
-            'day': tstamp.day,
-            'hour': tstamp.hour,
+            'date': date,
+            'time': tstamp - date,
             'temp': temp,
             'temp_min': temp_min,
             'temp_max': temp_max,
