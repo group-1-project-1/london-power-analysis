@@ -52,7 +52,7 @@ def eventPlotter(dfx, title, col='sigma', suffix="", label=None, color=None):
     else:
         plt.plot(xvals, dfx[col], label=label)
     
-    plt.xticks(xvals, rotation='vertical')
+    #plt.xticks(xvals, rotation='vertical')
     plt.title(title)
     plt.ylabel(f"Energy Consumption {suffix}")
     #plt.grid(True)
@@ -75,6 +75,7 @@ def plotUsageProfile(means, stds):
               color='darkgray', label='$\mu - 2\sigma$', linestyle='--')
     plt.ylim([10, 1700])
     plt.legend(loc='lower left')
+    plt.xticks(xvals, rotation='vertical')
 
     #plt.fill_between(xvals, min15, min25, facecolor='black', alpha=0.10)
     #plt.fill_between(xvals, mu,    min15, facecolor='black', alpha=0.155)
@@ -85,6 +86,9 @@ def plotUsageProfile(means, stds):
 
 
 def plotSamplePaths(dfs, title, means, stds, col='sigma', tsb=None, tse=None):
+    xvals = means.index.astype('timedelta64[m]')
+
+    # new figure
     plt.figure(figsize=(figsize[0], figsize[1]*2))
 
     # first subplot
@@ -98,6 +102,7 @@ def plotSamplePaths(dfs, title, means, stds, col='sigma', tsb=None, tse=None):
         plt.axvspan(tsb, tse, color='red', alpha=0.2)
 
     #plt.yticks([])
+    plt.xticks(xvals)
     plt.setp( plt.xticks()[1], visible=False )
     plt.grid(True)
     
@@ -121,6 +126,8 @@ def plotSamplePaths(dfs, title, means, stds, col='sigma', tsb=None, tse=None):
         plt.axvspan(tsb, tse, color='red', alpha=0.2)
 
     plt.xlabel("time (minutes)")
+    plt.xticks(xvals, rotation='vertical')
+    
     plt.ylim([-3,3])
     plt.grid(True)
     if len(dfs) < 10:
@@ -167,24 +174,25 @@ for obj in [means, stds]:
     del obj['day'], obj['Unnamed: 0']
     pass
 
-
-
 # ##############################################################################
 
 data.set_index('datetime', inplace=True)
 
+# load weather data
 weather = pd.read_csv('./data/openweather-london-2013.csv')
 weather['date'] = pd.to_datetime(weather['date'])
 weather['time'] = pd.to_timedelta(weather['time'])
 
+# generate a sample of dates with weather data
+dates = weather['date'].sample(50)
+weather.set_index('date', inplace=True)
+
+# load sunrise/sunset data
 times = pd.read_csv('./data/london-sunrise-sunset.csv')
 times['date']=pd.to_datetime(times['date'])
 times['sunrise']=pd.to_timedelta(times['sunrise'])
 times['sunset']=pd.to_timedelta(times['sunset'])
 times.set_index('date', inplace=True)
-
-dates = weather['date'].sample(3)
-weather.set_index('date', inplace=True)
 
 dfs=[]
 
