@@ -33,7 +33,7 @@ for entry in raw:
     tstamp = pd.to_datetime(entry['dt_iso'], format=timefmt)
     
     # extract and convert relevant entries 
-    temp = (entry['main']['temp'] - 275.15)*1.8 + 32.0
+    temp = (entry['main']['temp'] - 273.15)*1.8 + 32.0
     temp_min = (entry['main']['temp_min'] - 273.15)*1.8 + 32.0
     temp_max = (entry['main']['temp_max'] - 273.15)*1.8 + 32.0
     pressure = entry['main']['pressure']
@@ -44,12 +44,10 @@ for entry in raw:
        temp_max > -100.0 and \
        temp_min > -100.0:
         # if it is, then add it to the list
+        date = pd.to_datetime(f'{tstamp.year}-{tstamp.month}-{tstamp.day}')
         weather.append({
-            'datetime': tstamp,
-            'year': tstamp.year,
-            'month': tstamp.month,
-            'day': tstamp.day,
-            'hour': tstamp.hour,
+            'date': date,
+            'time': tstamp - date,
             'temp': temp,
             'temp_min': temp_min,
             'temp_max': temp_max,

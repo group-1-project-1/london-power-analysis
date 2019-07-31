@@ -21,7 +21,7 @@ def do_something_useful():
 
 # setup context ################################################################
 
-# pull in notebooks/pickup_utilities.py 
+# pull in notebooks/pickup_utilities.py
 with open(import_path, newline='') as infile:
     source = infile.read()
     code = compile( source, 'pickup_utilities', 'exec')
@@ -57,7 +57,8 @@ for filename in os.listdir(nb_dir):
             # search source for slack'd out snippet which ..
             #     .. should be in the notebook somewhere.
             if cell['cell_type'] == 'code' and \
-               source.find('pd.read_csv("../data/complete.csv")') >= 0:
+               source.find('from pickup_utilities import')>=0 and \
+               source.find('pd.read_csv("../data/complete.csv")')>=0:
                 found_init = True
                 break # exit this loop
 
@@ -68,7 +69,7 @@ for filename in os.listdir(nb_dir):
             print(' + No valid init. cell found. ignoring.')
             
         else: # if so, ...
-            # tell user are interested in notebook
+            # tell user we are interested in notebook
             print(' + Found valid init. cell')
             
             # reset switch
@@ -80,7 +81,7 @@ for filename in os.listdir(nb_dir):
 
             # generate basepath for saving plots
             figbasepath = os.path.join(
-                '.', 'images', filename[:-6]) 
+                '.', 'images', filename[:-6])
 
             # compile/exec remaining code cells 
             print(f' + Compiling/Running remaining notebook code cells')
@@ -97,7 +98,10 @@ for filename in os.listdir(nb_dir):
 
                     # execute compiled byte-code in the current 'context'
                     print(f'  - Running cell {ii}')
+                    
+                    os.chdir(nb_dir)
                     exec(code)
+                    os.chdir('..')
 
                     # check to see if any plots have been generated
                     if show_called:
