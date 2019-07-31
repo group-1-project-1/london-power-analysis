@@ -33,7 +33,7 @@ for entry in raw:
     tstamp = pd.to_datetime(entry['dt_iso'], format=timefmt)
     
     # extract and convert relevant entries 
-    temp = (entry['main']['temp'] - 275.15)*1.8 + 32.0
+    temp = (entry['main']['temp'] - 273.15)*1.8 + 32.0
     temp_min = (entry['main']['temp_min'] - 273.15)*1.8 + 32.0
     temp_max = (entry['main']['temp_max'] - 273.15)*1.8 + 32.0
     pressure = entry['main']['pressure']
