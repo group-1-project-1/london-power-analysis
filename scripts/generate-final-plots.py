@@ -1,20 +1,17 @@
-import pandas as pd
-from datetime import datetime
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
-
+from plot_utils import *
 
 # ##############################################################################
 
 highlight_regions = [
-    ('2013-03-29', '2013-04-02', 'Bank Holiday (Easter)'),
-    ('2013-12-25', '2013-12-26', 'Christmas'),
-    ('2013-09-04', '2013-10-26', 'Autumn Term 1 (Primary School)'),
-    # source: http://www.meridian.greenwich.sch.uk/2013-14-term-dates/4576432042
-
-]
+    ('2013-03-30', '2013-04-02', 'Bank Holiday?', 'red'),
+    ('2013-09-04', '2013-10-26', 'Primary School Term?? .. Daylight Saving??!',
+     'red'),
+    ('2013-12-24', '2013-12-27', 'Christmas.', 'green'),
     
+]
+
+# number of daily pow. usage bits to plot
+sample_size = 35
 
 colors  = list(mcolors.CSS4_COLORS.keys())
 del colors[:14]
@@ -39,139 +36,6 @@ acorn_names = [ 'Affluent',
                 'Stretched',
                 'Adversity',
                 'Other']
-
-def extractGroupedAcorn(df):
-    if 'group1_sigma' in df.columns:
-        return (df['group1_sigma'], 
-                df['group2_sigma'], 
-                df['group3_sigma'], 
-                df['group4_sigma'], 
-                df['group6_sigma'])
-    
-    Acorn1 = df["A_sigma"] + df["B_sigma"] + df["C_sigma"]
-    Acorn2 = df["D_sigma"] + df["E_sigma"]
-    Acorn3 = df["F_sigma"] + df["G_sigma"] + df["H_sigma"] \
-                                           + df["I_sigma"] + df["J_sigma"]
-    Acorn4 = df["K_sigma"] + df["L_sigma"] + df["M_sigma"] \
-                                           + df["N_sigma"]
-    Acorn5 = df["O_sigma"] + df["P_sigma"] + df["Q_sigma"]
-    Acorn6 = df["U_sigma"]
-    return (Acorn1, Acorn2, Acorn3, Acorn4, Acorn5)
-
-
-def eventPlotter(dfx, title, col='sigma', suffix="", label=None, color=None):
-    try:
-        xvals = dfx['time'].astype('timedelta64[m]')
-    except KeyError:
-        xvals = dfx.index.astype('timedelta64[m]')
-        pass
-    
-    if color:
-        plt.plot(xvals, dfx[col], label=label, color=color, linewidth=0.8)
-    else:
-        plt.plot(xvals, dfx[col], label=label, linewidth=0.8)
-    
-    #plt.xticks(xvals, rotation='vertical')
-    plt.title(title)
-    plt.ylabel(f"Energy Consumption {suffix}")
-    #plt.grid(True)
-    pass
-	
-
-def plotUsageProfile(means, stds):
-
-    plt.ylabel('Energy Usage (kW-h/hh)')
-    
-    xvals = pd.Series(means.index).astype('timedelta64[m]')
-
-    plt.plot( xvals,
-              means['sigma']+2.0*stds['sigma'],
-              color='gray', label='$\mu + 2\sigma$', 
-              linewidth=2, linestyle='--')
-    
-    plt.plot( xvals, means['sigma']+stds['sigma'],
-              color='black', label='$\mu + \sigma$',
-              linewidth=2, linestyle='--')
-    
-    plt.plot( xvals, means['sigma'],
-              label='$\mu$', color='blue',
-              linewidth=2.0)
-    
-    plt.plot( xvals, means['sigma']-stds['sigma'],
-              color='black', label='$\mu - \sigma$',
-              linewidth=2, linestyle='--')
-    
-    plt.plot( xvals, means['sigma']-2.0*stds['sigma'],
-              color='gray', label='$\mu - 2\sigma$',
-              linewidth=2, linestyle='--')
-    
-    plt.ylim([10, 1700])
-    plt.legend(loc='lower left')
-    plt.xticks(xvals, rotation='vertical')
-
-    #plt.fill_between(xvals, min15, min25, facecolor='black', alpha=0.10)
-    #plt.fill_between(xvals, mu,    min15, facecolor='black', alpha=0.155)
-    #plt.fill_between(xvals, mu,    add15, facecolor='black', alpha=0.155)
-    #plt.fill_between(xvals, add15, add25, facecolor='black', alpha=0.10)
-        
-    pass
-
-
-def plotSamplePaths(dfs, title, means, stds, col='sigma', tsb=None, tse=None):
-    xvals = means.index.astype('timedelta64[m]')
-
-    # new figure
-    plt.figure(figsize=(figsize[0], figsize[1]*2))
-
-    # first subplot
-    plt.subplot(2,1,1)
-    plotUsageProfile(means, stds)
-    for label, color, samp in dfs:
-        eventPlotter(samp, title, col=col,
-                     label=label, color=mcolors.to_rgb(color)+(0.75,))
-        
-    # highlight interesting region
-    if tsb != None and tse != None:
-        plt.axvspan(tsb, tse, color='red', alpha=0.2)
-
-    #plt.yticks([])
-    plt.xticks(xvals)
-    plt.setp( plt.xticks()[1], visible=False )
-    plt.grid(True)
-    
-    # second subplot
-    plt.subplot(2,1,2)    
-    # plot z-scores
-    for label, color, samp in dfs:
-        # calculate z-score series for power signals 
-        samp = samp.set_index('time')
-        for name in samp.columns:
-            if name in means.columns:
-                samp[name] = (samp[name]-means[name])/stds[name]
-        
-        samp = samp.reset_index()
-        
-        # plot the new series
-        eventPlotter(samp, '', suffix='(Z-Score)',
-                     col=col, label=label, color=color)
-        pass
-
-    # highlight interesting region
-    if tsb != None and tse != None:
-        plt.axvspan(tsb, tse, color='red', alpha=0.2)
-
-    plt.xlabel("time (minutes)")
-    plt.xticks(xvals, rotation='vertical')
-    
-    plt.ylim([-3,3])
-    plt.grid(True)
-    if len(dfs) < 10:
-        plt.legend(loc='upper left')
-     
-    # adjust subplot locations
-    plt.subplots_adjust(bottom=0.125, top=1.0 - 0.0425, wspace=0.35)
-    plt.tight_layout()
-    pass
 
 # ##############################################################################
 
@@ -226,8 +90,6 @@ times['sunset']=pd.to_timedelta(times['sunset'])
 times.set_index('date', inplace=True)
 
 # plot a sample of the daily power usages
-sample_size = 15
-
 dates = pd.Series(weather.index).sample( sample_size )
 
 dfs=[]
@@ -238,19 +100,25 @@ for date in dates:
     dfs.append(
         (dname, (0.5, date.month/12.0, 0.5), df))
     
-plotSamplePaths( dfs, 'title', means, stds )
-plt.show()
+plotSamplePaths( dfs, f'n={sample_size} Daily Power Curves',
+                 means, stds )
+#plt.show()
 plt.savefig('sample-paths.png')
-plt.close()
+#plt.close()
 
 # ##############################################################################
 
-daily = data.groupby('date').apply(lambda x : x.set_index('time')['sigma'])
+figsize=(200//12//2,5)
+rng = data['date'].apply(lambda date: \
+                         date >= pd.to_datetime('2013-12-19'))
+region = data.loc[rng]
+daily = region.groupby('date').apply(lambda x : x.set_index('time')['sigma'])
 zdaily = pd.DataFrame(
     dict([(date,
            (daily.loc[date] - means['sigma'])/stds['sigma']) \
                               for date in daily.index ]) ).transpose()
-plt.figure(figsize=(200,5))
+# plot full adjusted year
+plt.figure(figsize=figsize)
 
 delta = pd.to_timedelta('1 day')
 zero = pd.to_timedelta('00:00:00')
@@ -273,27 +141,62 @@ sset = zdaily.index + times.loc[zdaily.index, 'sunset']
 
 # show nights
 for day in srise.index[:-1]:
-    plt.axvspan( sset[day], srise[day+delta], ymax=0.8,
+    plt.axvspan( sset[day], srise[day+delta], ymax=1.0,
                  color=(0,0,0.5,0.08,))
 
 # highlight interesting regions
-for beg, end, name in highlight_regions:
-    beg = pd.to_datetime(beg)
-    end = pd.to_datetime(end)
-    
-    plt.axvspan( beg, end, color='red', alpha=0.3, ymax=0.8)
-    plt.text(beg, 4.0, name, fontsize=15)
+#for beg, end, name, color in highlight_regions:
+#    beg = pd.to_datetime(beg)
+#    end = pd.to_datetime(end)
+#    
+#    plt.axvspan( beg, end, color=color, alpha=0.3, ymin=0.84, ymax=1.0)
+#    plt.text(beg, 4.0, name, fontsize=15)
     
 # extract x-ticks and labels
 xvals = pd.to_datetime(data['date'].unique())
 labels = [ f'{x.month}-{x.day:02}' for x in xvals ]
 
 plt.xticks( xvals, labels, rotation='vertical')
-plt.xlim( min(zdaily.index) - 3*delta, max(zdaily.index) + 3*delta )
-plt.ylim(-2, 5)
+plt.xlim( min(zdaily.index) , max(zdaily.index) )
+plt.ylim(-2, 4.2)
              
 plt.tight_layout()
-plt.show()
-plt.savefig('complete-year-2013.png')
-plt.close()
+plt.savefig('adjusted-event.png')
+
+# plot unscaled power usage
+plt.figure(figsize=figsize)
+delta = pd.to_timedelta('1 day')
+zero = pd.to_timedelta('00:00:00')
+for date in daily.index[:-1]:
+    ser = daily.loc[date]
+
+    if date.day_name() in ['Saturday', 'Sunday']:
+        color = 'green'
+    else:
+        color = 'blue'
+
+    xvals = [ date + ts for ts in daily.columns ]
+    xvals.append(date + delta)
+    ser.loc['1 day'] = daily.loc[date+delta][zero]
+    plt.plot(xvals, ser, color=color, linewidth=1)
+    pass
+
+srise = daily.index + times.loc[zdaily.index, 'sunrise']
+sset = daily.index + times.loc[zdaily.index, 'sunset']
+
+# show nights
+for day in srise.index[:-1]:
+    plt.axvspan( sset[day], srise[day+delta], ymax=1.0,
+                 color=(0,0,0.5,0.08,))
+
+xvals = pd.to_datetime(data['date'].unique())
+labels = [ f'{x.month}-{x.day:02}' for x in xvals ]
+
+plt.xticks( xvals, labels, rotation='vertical')
+plt.xlim( min(zdaily.index) , max(zdaily.index) )
+            
+plt.tight_layout()
+plt.savefig('raw-event.png')
+
+#plt.close()
 
