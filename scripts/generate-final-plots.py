@@ -7,6 +7,15 @@ import matplotlib.colors as mcolors
 
 # ##############################################################################
 
+highlight_regions = [
+    ('2013-03-29', '2013-04-02', 'Bank Holiday (Easter)'),
+    ('2013-12-25', '2013-12-26', 'Christmas'),
+    ('2013-09-04', '2013-10-26', 'Autumn Term 1 (Primary School)'),
+    # source: http://www.meridian.greenwich.sch.uk/2013-14-term-dates/4576432042
+
+]
+    
+
 colors  = list(mcolors.CSS4_COLORS.keys())
 del colors[:14]
 
@@ -51,7 +60,12 @@ def extractGroupedAcorn(df):
 
 
 def eventPlotter(dfx, title, col='sigma', suffix="", label=None, color=None):
-    xvals = dfx['time'].astype('timedelta64[m]')
+    try:
+        xvals = dfx['time'].astype('timedelta64[m]')
+    except KeyError:
+        xvals = dfx.index.astype('timedelta64[m]')
+        pass
+    
     if color:
         plt.plot(xvals, dfx[col], label=label, color=color, linewidth=0.8)
     else:
@@ -134,6 +148,7 @@ def plotSamplePaths(dfs, title, means, stds, col='sigma', tsb=None, tse=None):
         for name in samp.columns:
             if name in means.columns:
                 samp[name] = (samp[name]-means[name])/stds[name]
+        
         samp = samp.reset_index()
         
         # plot the new series
@@ -188,13 +203,6 @@ means = data.groupby('time').mean()
 stds  = data.groupby('time').std()
 
 for obj in [means, stds]:
-    obj['time'] = \
-        obj.apply(lambda row :\
-                  pd.to_timedelta(
-                      f'{int(row["hour"])}:{int(row["minute"]):02}:00',
-                      unit='m'),
-                  axis=1)
-    
     del obj['hour'], obj['minute']
     del obj['year'], obj['month']
     del obj['day'], obj['Unnamed: 0']
@@ -243,7 +251,10 @@ zdaily = pd.DataFrame(
            (daily.loc[date] - means['sigma'])/stds['sigma']) \
                               for date in daily.index ]) ).transpose()
 plt.figure(figsize=(200,5))
-for date in zdaily.index:
+
+delta = pd.to_timedelta('1 day')
+zero = pd.to_timedelta('00:00:00')
+for date in zdaily.index[:-1]:
     ser = zdaily.loc[date]
 
     if date.day_name() in ['Saturday', 'Sunday']:
@@ -252,22 +263,37 @@ for date in zdaily.index:
         color = 'blue'
 
     xvals = [ date + ts for ts in zdaily.columns ]
+    xvals.append(date + delta)
+    ser.loc['1 day'] = zdaily.loc[date+delta][zero]
     plt.plot(xvals, ser, color=color, linewidth=1)
     pass
 
-delta = pd.to_timedelta('1 day')
 srise = zdaily.index + times.loc[zdaily.index, 'sunrise']
 sset = zdaily.index + times.loc[zdaily.index, 'sunset']
 
+# show nights
 for day in srise.index[:-1]:
-    plt.axvspan( sset[day], srise[day+delta],
+    plt.axvspan( sset[day], srise[day+delta], ymax=0.8,
                  color=(0,0,0.5,0.08,))
-plt.xticks( pd.to_datetime(
-    [ f'2013-{month+1}-01' for month in range(0,12) ]))
 
+# highlight interesting regions
+for beg, end, name in highlight_regions:
+    beg = pd.to_datetime(beg)
+    end = pd.to_datetime(end)
+    
+    plt.axvspan( beg, end, color='red', alpha=0.3, ymax=0.8)
+    plt.text(beg, 4.0, name, fontsize=15)
+    
+# extract x-ticks and labels
+xvals = pd.to_datetime(data['date'].unique())
+labels = [ f'{x.month}-{x.day:02}' for x in xvals ]
+
+plt.xticks( xvals, labels, rotation='vertical')
 plt.xlim( min(zdaily.index) - 3*delta, max(zdaily.index) + 3*delta )
+plt.ylim(-2, 5)
+             
 plt.tight_layout()
 plt.show()
-plt.savefig('complete-year.png')
-#plt.close()
+plt.savefig('complete-year-2013.png')
+plt.close()
 
